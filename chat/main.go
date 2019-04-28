@@ -31,16 +31,23 @@ func main() {
 	var addr = flag.String("addr", ":8080", "The addr of the application")
 	flag.Parse()
 
+	// El room r son los websockets,
+	// por lo que no se carga un template html en esa ruta
 	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 
-	http.Handle("/", &templateHandler{filename: "chat.html"})
+	// Para poder utilizar assets en los templates
+	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("templates/assets/"))))
+
+	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
+	http.Handle("/login", &templateHandler{filename: "login.html"})
+	http.HandleFunc("/auth/", loginHandler)
+	http.Handle("/room", r)
 
 	// El room se ejecuta en una gorutina
 	// por lo que el server se ejecuta en la
 	// gorutina principal
 
-	http.Handle("/room", r)
 	go r.run()
 
 	log.Println("Starting the web server on", *addr)
