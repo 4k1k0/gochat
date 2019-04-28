@@ -5,8 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Chat</title>
+  <style>
+    ul {
+      list-style-type: none;
+    }
+    input {
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <h1>Chat</h1>
+  <ul id="messages"></ul>
+  <form id="chatbox">
+    <textarea></textarea>
+    <input type="submit" value="send">
+  </form>
+  <script src="//code.jquery.com/jquery-3.4.0.min.js"></script>
+  <script>
+    $(function() {
+      var socket = null;
+      var msgBox = $('#chatbox textarea');
+      var messages = $('#messages');
+      $('#chatbox').submit(function() {
+        if (!msgBox.val()) return false;
+        if (!socket) {
+          alert('no socket');
+          return false;
+        }
+        socket.send(msgBox.val());
+        msgBox.val('');
+        return false;
+      });
+      socket = new WebSocket('ws://localhost:8080/room');
+      socket.onclose = function() {
+        alert('conection closed');
+      };
+      socket.onmessage = function(e) {
+        messages.append($('<li>').text(e.data));
+      }
+    })
+  </script>
 </body>
 </html>
