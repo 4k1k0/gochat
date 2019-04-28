@@ -23,7 +23,16 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
+	r := newRoom()
+
 	http.Handle("/", &templateHandler{filename: "chat.html"})
+
+	// El room se ejecuta en una gorutina
+	// por lo que el server se ejecuta en la
+	// gorutina principal
+
+	http.Handle("/room", r)
+	go r.run()
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal("Listen and serve", err)
