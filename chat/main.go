@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
 	"net/http"
@@ -10,6 +11,8 @@ import (
 	"text/template"
 
 	"../trace"
+	"github.com/stretchr/gomniauth"
+	"github.com/stretchr/gomniauth/providers/github"
 )
 
 type templateHandler struct {
@@ -25,11 +28,42 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t.templ.Execute(w, r)
 }
 
+type Credentials struct {
+	id        string
+	secretKey string
+}
+
+func SetUp() (Credentials, error) {
+	file, _ := os.Open("config.json")
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	conf := Credentials{}
+	err := decoder.Decode(&conf)
+	if err != nil {
+		return conf, err
+	}
+	return conf, nil
+}
+
 func main() {
+
+	conf, err := SetUp()
+	if err != nil {
+		log.Fatal("Error loading config file.")
+	}
 
 	// Agrega flags para cli
 	var addr = flag.String("addr", ":8080", "The addr of the application")
 	flag.Parse()
+
+	url := "http://localhost" + *addr + "/auth/callback/github"
+
+	// Auth
+
+	gomniauth.SetSecurityKey("af7hZXjbEmSVp7OyTs11M8Ij6ITyJjTrqPomRmM53KTpGbigGVjcZqUvISuDeeV0")
+	gomniauth.WithProviders(
+		github.New(conf.id, conf.secretKey, url),
+	)
 
 	// El room r son los websockets,
 	// por lo que no se carga un template html en esa ruta
