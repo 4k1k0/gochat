@@ -15,7 +15,9 @@
   </style>
 </head>
 <body>
-  <h1>Chat</h1>
+  <h1>
+    Chat en {{ .Host }}
+  </h1>
   <ul id="messages"></ul>
   <form id="chatbox">
     <textarea></textarea>
@@ -37,7 +39,7 @@
         msgBox.val('');
         return false;
       });
-      socket = new WebSocket('ws://localhost:8080/room');
+      socket = new WebSocket('ws://{{.Host}}/room');
       socket.onclose = function() {
         alert('conection closed');
       };
